@@ -1,0 +1,19 @@
+SELECT
+    d.department AS department,
+    j.job AS job,
+    SUM(CASE WHEN EXTRACT(MONTH FROM e.datetime) BETWEEN 1 AND 3 THEN 1 ELSE 0 END) AS Q1,
+    SUM(CASE WHEN EXTRACT(MONTH FROM e.datetime) BETWEEN 4 AND 6 THEN 1 ELSE 0 END) AS Q2,
+    SUM(CASE WHEN EXTRACT(MONTH FROM e.datetime) BETWEEN 7 AND 9 THEN 1 ELSE 0 END) AS Q3,
+    SUM(CASE WHEN EXTRACT(MONTH FROM e.datetime) BETWEEN 10 AND 12 THEN 1 ELSE 0 END) AS Q4
+FROM
+    public.hired_employees AS e
+JOIN
+    public.departments AS d ON TRIM(TRAILING '.0' FROM department_id) = CAST(d.id AS VARCHAR(10))
+JOIN
+    public.jobs AS j ON TRIM(TRAILING '.0' FROM job_id) = CAST(j.id AS VARCHAR(10))
+WHERE
+    e.datetime IS NOT NULL AND e.datetime <> 'NaN'
+GROUP BY
+    d.department, j.job
+ORDER BY
+    d.department, j.job;
