@@ -1,0 +1,90 @@
+from flask import Flask, request, jsonify
+import pyodbc
+
+app = Flask(__name__)
+
+# Database connection configuration
+server = 'localhost'
+database = 'mysqldb'
+username = 'sa'
+password = '1234'
+connection_string = (
+    'DRIVER={ODBC Driver 17 for SQL Server};'
+    'SERVER=' + server + ';'
+    'DATABASE=' + database + ';'
+    'UID=' + username + ';'
+    'PWD=' + password
+)
+
+def get_db_connection():
+    conn = pyodbc.connect(connection_string)
+    return conn
+
+@app.route('/jobs', methods=['GET'])
+def get_jobs():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM jobs')
+    rows = cursor.fetchall()
+    conn.close()
+
+    # Convert results to a list of dictionaries
+    columns = [column[0] for column in cursor.description]
+    jobs = []
+    for row in rows:
+        jobs.append(dict(zip(columns, row)))
+
+    return jsonify(jobs)
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'})
+    
+    file = request.files['file']
+    
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'})
+    
+    if file:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Determine table based on file name
+        if file.filename == 'jobs.csv':
+            table_name = 'jobs'
+            columns = ['column1', 'column2']  # Replace with actual column names
+        elif file.filename == 'hired_employees.csv':
+            table_name = 'hired_employees'
+            columns = ['employee_name', 'hire_date', 'department_id', 'salary']
+        elif file.filename == 'departments.csv':
+            table_name = 'departments'
+            columns = ['department_id', 'department_name']
+        else:
+            return jsonify({'error': 'Invalid file name'})
+
+        # Read and parse CSV file
+        lines = file.readlines()
+        batch_size = 1000
+        rows = []
+
+        for line in lines:
+            values = line.decode().strip().split(',')
+            rows.append(values)
+            
+            # Insert in batches
+            if len(rows) == batch_size:
+                cursor.executemany(f'INSERT INTO {table_name} ({", ".join(columns)}) VALUES ({", ".join(["?"] * len(columns))})', rows)
+                rows = []
+
+        # Insert any remaining rows
+        if rows:
+            cursor.executemany(f'INSERT INTO {table_name} ({", ".join(columns)}) VALUES ({", ".join(["?"] * len(columns))})', rows)
+
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'message': 'File uploaded and data inserted successfully'})
+
+if __name__ == '__main__':
+    app.run(debug=True)
