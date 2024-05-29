@@ -1,19 +1,16 @@
-SELECT
-    d.department AS department,
-    j.job AS job,
-    SUM(CASE WHEN EXTRACT(MONTH FROM e.datetime) BETWEEN 1 AND 3 THEN 1 ELSE 0 END) AS Q1,
-    SUM(CASE WHEN EXTRACT(MONTH FROM e.datetime) BETWEEN 4 AND 6 THEN 1 ELSE 0 END) AS Q2,
-    SUM(CASE WHEN EXTRACT(MONTH FROM e.datetime) BETWEEN 7 AND 9 THEN 1 ELSE 0 END) AS Q3,
-    SUM(CASE WHEN EXTRACT(MONTH FROM e.datetime) BETWEEN 10 AND 12 THEN 1 ELSE 0 END) AS Q4
-FROM
-    public.hired_employees AS e
-JOIN
-    public.departments AS d ON TRIM(TRAILING '.0' FROM department_id) = CAST(d.id AS VARCHAR(10))
-JOIN
-    public.jobs AS j ON TRIM(TRAILING '.0' FROM job_id) = CAST(j.id AS VARCHAR(10))
-WHERE
-    e.datetime IS NOT NULL AND e.datetime <> 'NaN'
-GROUP BY
-    d.department, j.job
-ORDER BY
-    d.department, j.job;
+with grouped as 
+(SELECT departments.column2 department, jobs.column2 job, DATEPART(QUARTER, column3 ) quarter, count (*) people
+FROM [mysqldb].[dbo].[hired_employees] 
+join departments on (hired_employees.column4 = departments.column1)
+join jobs on (hired_employees.column5 = jobs.column1)
+where DATEPART(year, column3)=2021 
+group by departments.column2, jobs.column2, DATEPART(QUARTER, column3 )),
+pivote as
+(select * from grouped
+
+PIVOT  
+(sum (people)  
+FOR quarter IN  
+( [1], [2], [3], [4] )  
+) AS Q
+)select department, job, isnull ([1],0)Q1, isnull ([2],0)Q2, isnull ([3],0)Q3, isnull ([4],0)Q4 from pivote 
