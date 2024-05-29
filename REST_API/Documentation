@@ -1,25 +1,25 @@
 Toolstack 
 
-Main tools
-Code: Visual code
-SQL database:  
-API simulator: 
+  Main tools
+    Code: Visual code
+    SQL database: SQL server (local)
+    API simulator: Thunder Client (in visual code)
 
-other tools used
-Code:  Colab                                         -- Change because I needed a local tool for code 
-SQL database: Google cloud platform SQL PostgreSQL   --  Change because the connection needs a Token
-
+  other tools used 
+    Code:  Colab                                         -- Change because I needed a local tool for code 
+    SQL database: Google cloud platform SQL PostgreSQL   --  Change because the connection needs a Token
+    Postman:                                             -- It is too heavy and ineffective for this code.          
 
 Observations:
 
--In the last folder, REST_API batch transactions are the three parts.
+  -In the last folder, REST_API batch transactions are the three parts.
 
--Before deploying the scrip it is necessary to install the following packages:
-  !pip install pyodbc
-  !pip install pandas
-  !pip install fastapi uvicorn sqlalchemy pandas
-  !pip install Flask SQLAlchemy pandas psycopg2
-  !pip install Flask-SQLAlchemy
-  !pip install Flask
+  -Before deploying the scrip it is necessary to install the following packages:
+    !pip install pyodbc
+    !pip install pandas
+    !pip install fastapi uvicorn sqlalchemy pandas
+    !pip install Flask SQLAlchemy pandas psycopg2
+    !pip install Flask-SQLAlchemy
+    !pip install Flask
 
 
